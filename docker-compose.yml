@@ -1,0 +1,148 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: library-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-library}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    networks:
+      - library-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-library}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Go Backend API
+  backend:
+    build:
+      context: ./library-backend
+      dockerfile: Dockerfile
+      args:
+        - GO_VERSION=1.21
+    container_name: library-backend
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_NAME: ${DB_NAME:-library}
+      DB_SSLMODE: disable
+      DB_TIMEZONE: UTC
+
+      # Server Configuration
+      SERVER_PORT: 8080
+      GIN_MODE: release
+
+      # Application Settings
+      APP_NAME: "Library Backend"
+      APP_VERSION: "1.0.0"
+      APP_ENV: production
+      LOG_LEVEL: info
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - ./library-backend/logs:/app/logs
+    networks:
+      - library-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: ["./scripts/wait-for-it.sh", "postgres:5432", "--", "./main"]
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./library-frontend
+      dockerfile: Dockerfile
+      args:
+        - NODE_VERSION=18
+        - VITE_API_BASE_URL=http://localhost:${BACKEND_PORT:-8080}/api/v1
+    container_name: library-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    networks:
+      - library-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: library-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - library-network
+    depends_on:
+      - backend
+      - frontend
+    profiles:
+      - production
+
+# Networks
+networks:
+  library-network:
+    driver: bridge
+    name: library-network
+
+# Volumes
+volumes:
+  postgres_data:
+    driver: local
+    name: library-postgres-data

@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/* Custom base styles */
+@layer base {
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    line-height: 1.6;
+  }
+}
+
+/* Custom components */
+.btn-primary {
+  background: theme(colors.blue.600);
+  color: theme(colors.white);
+  padding: theme(spacing.2) theme(spacing.4);
+  border-radius: theme(borderRadius.lg);
+  font-weight: theme(fontWeight.medium);
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: theme(colors.blue.700);
+}
+
+.btn-secondary {
+  background: theme(colors.gray.600);
+  color: theme(colors.white);
+  padding: theme(spacing.2) theme(spacing.4);
+  border-radius: theme(borderRadius.lg);
+  font-weight: theme(fontWeight.medium);
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: theme(colors.gray.700);
+}
+
+.btn-danger {
+  background: theme(colors.red.600);
+  color: theme(colors.white);
+  padding: theme(spacing.2) theme(spacing.4);
+  border-radius: theme(borderRadius.lg);
+  font-weight: theme(fontWeight.medium);
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: theme(colors.red.700);
+}
+
+.input-field {
+  width: 100%;
+  padding: theme(spacing.3);
+  border: 1px solid theme(colors.gray.300);
+  border-radius: theme(borderRadius.lg);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus {
+  border-color: theme(colors.blue.500);
+  box-shadow: 0 0 0 2px theme(colors.blue.500 / 0.2);
+}
+
+.card {
+  background: theme(colors.white);
+  padding: theme(spacing.6);
+  border-radius: theme(borderRadius.lg);
+  box-shadow: theme(boxShadow.md);
+}
