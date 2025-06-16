@@ -1,0 +1,13 @@
+.git
+.gitignore
+README.md
+Dockerfile*
+docker-compose*
+.env*
+.air.toml
+tmp/
+*.log
+.vscode/
+.idea/
+*.test
+coverage.out

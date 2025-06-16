@@ -1,0 +1,444 @@
+basePath: /api/v1
+definitions:
+  library-backend_internal_models.Book:
+    properties:
+      author:
+        maxLength: 255
+        minLength: 1
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      isbn:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      updated_at:
+        type: string
+      year:
+        maximum: 2024
+        minimum: 1000
+        type: integer
+    required:
+    - author
+    - title
+    - year
+    type: object
+  library-backend_internal_models.BookResponse:
+    properties:
+      data:
+        $ref: '#/definitions/library-backend_internal_models.Book'
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  library-backend_internal_models.BooksResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/library-backend_internal_models.Book'
+        type: array
+      limit:
+        type: integer
+      message:
+        type: string
+      page:
+        type: integer
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  library-backend_internal_models.CreateBookRequest:
+    properties:
+      author:
+        maxLength: 255
+        minLength: 1
+        type: string
+      description:
+        type: string
+      isbn:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      year:
+        maximum: 2024
+        minimum: 1000
+        type: integer
+    required:
+    - author
+    - title
+    - year
+    type: object
+  library-backend_internal_models.ErrorResponse:
+    properties:
+      code:
+        type: string
+      details:
+        type: string
+      error:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  library-backend_internal_models.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  library-backend_internal_models.URLRequest:
+    properties:
+      operation:
+        enum:
+        - redirection
+        - canonical
+        - all
+        type: string
+      url:
+        type: string
+    required:
+    - operation
+    - url
+    type: object
+  library-backend_internal_models.URLResponse:
+    properties:
+      log_id:
+        type: integer
+      operation:
+        type: string
+      original_url:
+        type: string
+      processed_url:
+        type: string
+      success:
+        type: boolean
+    type: object
+  library-backend_internal_models.UpdateBookRequest:
+    properties:
+      author:
+        maxLength: 255
+        minLength: 1
+        type: string
+      description:
+        type: string
+      isbn:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      year:
+        maximum: 2024
+        minimum: 1000
+        type: integer
+    type: object
+  library-backend_internal_models.ValidationErrorDetail:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+      value:
+        type: string
+    type: object
+  library-backend_internal_models.ValidationErrorResponse:
+    properties:
+      details:
+        items:
+          $ref: '#/definitions/library-backend_internal_models.ValidationErrorDetail'
+        type: array
+      error:
+        type: string
+      fields:
+        additionalProperties:
+          type: string
+        type: object
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: A library management system with URL processing capabilities
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Library Management API
+  version: "1.0"
+paths:
+  /books:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all books with optional filtering and pagination
+      parameters:
+      - description: Filter by title
+        in: query
+        name: title
+        type: string
+      - description: Filter by author
+        in: query
+        name: author
+        type: string
+      - description: Filter by year
+        in: query
+        name: year
+        type: integer
+      - description: Number of items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Number of items to skip (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.BooksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Get all books
+      tags:
+      - books
+    post:
+      consumes:
+      - application/json
+      description: Create a new book with the provided information
+      parameters:
+      - description: Book information
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/library-backend_internal_models.CreateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.BookResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Create a new book
+      tags:
+      - books
+  /books/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a book by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Delete book
+      tags:
+      - books
+    get:
+      consumes:
+      - application/json
+      description: Get a single book by its ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.BookResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Get book by ID
+      tags:
+      - books
+    put:
+      consumes:
+      - application/json
+      description: Update an existing book by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated book information
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/library-backend_internal_models.UpdateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.BookResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ValidationErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Update book
+      tags:
+      - books
+  /books/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for books by title, author, or description
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.BooksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Search books
+      tags:
+      - books
+  /process-url:
+    post:
+      consumes:
+      - application/json
+      description: Process a URL based on the specified operation (canonical, redirection,
+        or all)
+      parameters:
+      - description: URL processing request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/library-backend_internal_models.URLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.URLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Process URL
+      tags:
+      - url-processing
+  /url-stats:
+    get:
+      consumes:
+      - application/json
+      description: Get statistics about URL processing operations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/library-backend_internal_models.ErrorResponse'
+      summary: Get URL processing statistics
+      tags:
+      - url-processing
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
